@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w
+# Copyright (C) 2009  Glen Pitt-Pladdy
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+#
+#
+# See: http://www.pitt-pladdy.com/blog/_20100320-215243%2B0000%20apcupsd%20stats%20on%20Cacti%20(via%20SNMP)/
+#
+
+
+open AC, "/sbin/apcaccess status localhost |"
+	or die "FATAL: can't run \"/sbin/apcaccess\": $!\n";
+while ( defined ( $line = <AC> ) ) {
+	chomp $line;
+	if ( $line !~ /^(\w+)\s*:\s*([^\s]+)/ ) { next; }
+	$field{$1} = $2;
+}
+close AC;
+
+
+print "$field{LINEV}\n";
+print "$field{OUTPUTV}\n";
+print "$field{LOTRANS}\n";
+print "$field{HITRANS}\n";
+print "$field{BATTV}\n";
+print "$field{NOMBATTV}\n";
+print "$field{BCHARGE}\n";
+print "$field{TIMELEFT}\n";
+print "$field{ITEMP}\n";
+print "$field{LOADPCT}\n";
+print ''.($field{'NOMPOWER'}*$field{'LOADPCT'}/100)."\n";
+print "$field{NOMPOWER}\n";
+print "$field{LINEFREQ}\n";
+if ( $field{'STATUS'} eq 'ONLINE' ) {
+	print "100\n0\n";
+} else {
+	print "0\n100\n";
+}
+
