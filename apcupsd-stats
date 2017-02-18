@@ -19,18 +19,34 @@
 #
 # See: https://www.pitt-pladdy.com/blog/_20100320-215243_0000_apcupsd_stats_on_Cacti_via_SNMP_/
 #
+use strict;
+use warnings;
+
+my $FRESHNESS = 120;	# how fresh the status file must be
 
 
-open AC, "/sbin/apcaccess status localhost |"
+# read in status file
+open my $ac, '-|', "/sbin/apcaccess status localhost"
 	or die "FATAL: can't run \"/sbin/apcaccess\": $!\n";
-while ( defined ( $line = <AC> ) ) {
+my %field;
+while ( defined ( my $line = <$ac> ) ) {
 	chomp $line;
 	if ( $line !~ /^(\w+)\s*:\s*([^\s]+)/ ) { next; }
 	$field{$1} = $2;
 }
-close AC;
+my $mtime = (stat $ac)[9];
+close ( $ac );
 
 
+# check freshness of data
+if ( $mtime < $^T - $FRESHNESS ) {
+	print STDERR "Data Stale\n";
+	# 15 data points
+	for ( my $i = 0; $i < 15; ++$i ) { print "U\n"; }
+	exit 1;
+}
+
+# output data
 print "$field{LINEV}\n";
 print "$field{OUTPUTV}\n";
 print "$field{LOTRANS}\n";
