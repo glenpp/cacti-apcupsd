@@ -21,6 +21,7 @@
 #
 use strict;
 use warnings;
+no warnings 'uninitialized';
 
 my $FRESHNESS = 120;	# how fresh the status file must be
 
